@@ -1,12 +1,18 @@
-int pos = 0;    // variable to store the servo position
+#include <Servo.h>
 
-int degF = 90;
-int degR = 90;
-int rotateDelay = 750;
-
-int servoValRot2 = 180;
-int servoValRot1 =0;
-int servoValStop = 90;
+extern Servo servoY1;
+extern Servo servoY2;
+extern Servo servoY3;
+extern Servo servoY4;
+extern Servo servoY5;
+extern Servo servoY6;
+extern int pos;
+extern int degF;
+extern int degR;
+extern int rotateDelay;
+extern int servoValRot2;
+extern int servoValRot1;
+extern int servoValStop;
 
 void setupServo() {
   servoY1.attach(5);
@@ -20,7 +26,7 @@ void setupServo() {
   delay(15);
 }
 
-void stopallServo(){
+void stopallServo() {
   servoY1.write(90);
   servoY2.write(90);
   servoY3.write(90);
@@ -29,7 +35,7 @@ void stopallServo(){
   servoY6.write(90);
 }
 
-void initPosServo(){
+void initPosServo() {
   servoY1.write(servoValRot1);
   delay(rotateDelay);
   servoY1.write(90);
@@ -48,13 +54,13 @@ void initPosServo(){
   servoY6.write(90);
 }
 
-void trayPos(int sortResult){
-  Serial.println("trayPos:"+String(sortResult));
-  switch(sortResult){
+void trayPos(int sortResult) {
+  Serial.println("trayPos:" + String(sortResult));
+  switch (sortResult) {
     case 1:
-      digitalWrite(motorCtrlPin,LOW);
-      delay(4600); //travel time from start point to servo 1
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, LOW);
+      delay(4600);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY1.write(servoValRot2);
       delay(rotateDelay);
@@ -63,9 +69,9 @@ void trayPos(int sortResult){
       servoY1.write(90);
       break;
     case 2:
-      digitalWrite(motorCtrlPin,LOW);
-      delay(5600);
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, LOW);
+      delay(6500);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY2.write(servoValRot2);
       delay(rotateDelay);
@@ -74,9 +80,9 @@ void trayPos(int sortResult){
       servoY2.write(90);
       break;
     case 3:
-      digitalWrite(motorCtrlPin,LOW);
+      digitalWrite(motorCtrlPin, LOW);
       delay(6900);
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY3.write(servoValRot2);
       delay(rotateDelay);
@@ -85,9 +91,9 @@ void trayPos(int sortResult){
       servoY3.write(90);
       break;
     case 4:
-      digitalWrite(motorCtrlPin,LOW);
+      digitalWrite(motorCtrlPin, LOW);
       delay(8800);
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY4.write(servoValRot2);
       delay(rotateDelay);
@@ -96,20 +102,20 @@ void trayPos(int sortResult){
       servoY4.write(90);
       break;
     case 5:
-      digitalWrite(motorCtrlPin,LOW);
-      delay(1000);
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, LOW);
+      delay(11000);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY5.write(servoValRot2);
       delay(rotateDelay);
       servoY5.write(servoValRot1);
       delay(rotateDelay);
       servoY5.write(90);
-      break;  
+      break;
     case 6:
-      digitalWrite(motorCtrlPin,LOW);
-      delay(11600);
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, LOW);
+      delay(12000);
+      digitalWrite(motorCtrlPin, HIGH);
       delay(1000);
       servoY6.write(servoValRot2);
       delay(rotateDelay);
@@ -123,16 +129,15 @@ void trayPos(int sortResult){
   Serial.println("Rotate done");
 }
 
-void testServo(){
-      delay(rotateDelay);
-      for (pos = 0; pos <= degF; pos += 1) { // goes from 0 degrees to 180 degrees
-        // in steps of 1 degree
-        servoY1.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(15);                       // waits 15 ms for the servo to reach the position
-      }
-      delay(rotateDelay);
-        for (pos = degR; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-        servoY1.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(15);                       // waits 15 ms for the servo to reach the position
-      }
+void testServo() {
+  delay(rotateDelay);
+  for (pos = 0; pos <= degF; pos += 1) {
+    servoY1.write(pos);
+    delay(15);
+  }
+  delay(rotateDelay);
+  for (pos = degR; pos >= 0; pos -= 1) {
+    servoY1.write(pos);
+    delay(15);
+  }
 }

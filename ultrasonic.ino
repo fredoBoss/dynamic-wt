@@ -1,112 +1,136 @@
+#include <HX711.h>
+
+extern HX711 scale;
+extern float balancePt[5];
+extern int currentPlate;
+extern boolean motorLastState;
+
 int inches = 0;
 int cm1 = 0;
 int cm2 = 0;
-boolean motorLastState = 0;
 
-
-
-long readUltrasonicDistance(int triggerPin, int echoPin)
-{
-  pinMode(triggerPin, OUTPUT);  // Clear the trigger
+long readUltrasonicDistance(int triggerPin, int echoPin) {
+  pinMode(triggerPin, OUTPUT);
   digitalWrite(triggerPin, LOW);
   delayMicroseconds(2);
-  // Sets the trigger pin to HIGH state for 10 microseconds
   digitalWrite(triggerPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(triggerPin, LOW);
   pinMode(echoPin, INPUT);
-  // Reads the echo pin, and returns the sound wave travel time in microseconds
   return pulseIn(echoPin, HIGH);
 }
 
-void startRotate(){
+void startRotate() {
   runRotate(true);
 }
 
-void rotateNext(){
-  // measure the ping time in cm
-  
+void rotateNext1() {
   int a = 0.01723 * readUltrasonicDistance(ut2, ue2);
   delay(50);
   int b = 0.01723 * readUltrasonicDistance(ut1, ue1);
   delay(50);
-  digitalWrite(motorCtrlPin,LOW);
-  if(a<=30 & b<=30){
+  digitalWrite(motorCtrlPin, LOW);
+  delay(300);
+  if (a <= 5 && b <= 5) {
     Serial.println("att");
-    delay(1100);
-    digitalWrite(motorCtrlPin,HIGH);
+    delay(800);
+    digitalWrite(motorCtrlPin, HIGH);
     scale.tare(20);
-    balancePt = weightValAvg();
-    // delay(2000);
-    digitalWrite(motorCtrlPin,LOW);
+    currentPlate = (currentPlate % 5) + 1; // Cycle through plates 1–5
+    balancePt[currentPlate-1] = weightValAvg();
+    saveBalancePts();
+    Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+    delay(4000);
+    digitalWrite(motorCtrlPin, LOW);
   }
   Serial.println("start rotate");
   boolean isRunning = true;
-  while (isRunning==true){
+  while (isRunning) {
+    Serial.println("rotating");
     int cm11 = 0.01723 * readUltrasonicDistance(ut1, ue1);
     delay(50);
     int cm21 = 0.01723 * readUltrasonicDistance(ut2, ue2);
     delay(50);
-      if (cm21<=30){
-        // delay(50);
-        if (cm11<=30){
-          digitalWrite(motorCtrlPin,HIGH);
-          isRunning = false;  
-        }
-        else{
-          digitalWrite(motorCtrlPin,LOW);
-        }
-      // if (cm2<=25){
-        // Serial.println(cm21);
-        // Serial.println("not run");
-        // runRotate(false
-        // delay(200);
-        
-        // break;
+    if (cm21 <= 3) {
+      if (cm11 <= 3) {
+        digitalWrite(motorCtrlPin, HIGH);
+        isRunning = false;
+        scale.tare(20);
+        currentPlate = (currentPlate % 5) + 1; // Cycle through plates
+        balancePt[currentPlate-1] = weightValAvg();
+        saveBalancePts();
+        Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+      } else {
+        digitalWrite(motorCtrlPin, LOW);
       }
-      else{
-        // Serial.println(cm1);
-        // runRotate(true);
-        // Serial.println("run");
-        digitalWrite(motorCtrlPin,LOW);
-      }
-      // delay(100); // Wait for 100 millisecond(s)
+    } else {
+      digitalWrite(motorCtrlPin, LOW);
+    }
   }
   Serial.println("end while");
 }
 
-void translateDistance(){
-  // measure the ping time in cm
+void rotateNext() {
+  Serial.println("start rotate");
+  digitalWrite(motorCtrlPin, LOW);
+  delay(700);
+  digitalWrite(motorCtrlPin, HIGH);
+  delay(3000);
+  digitalWrite(motorCtrlPin, LOW);
+  boolean isRunning = true;
+  int cm11 = 10;
+  int cm21 = 10;
+  while (isRunning) {
+    Serial.println("rotating");
+    cm21 = 0.01723 * readUltrasonicDistance(ut2, ue2);
+    delay(50);
+    if (cm21 <= 7) {
+      digitalWrite(motorCtrlPin, HIGH);
+      cm11 = 0.01723 * readUltrasonicDistance(ut1, ue1);
+      delay(50);
+      digitalWrite(motorCtrlPin, LOW);
+      delay(100);
+      if (cm11 <= 7) {
+        digitalWrite(motorCtrlPin, HIGH);
+        isRunning = false;
+        scale.tare(20);
+        currentPlate = (currentPlate % 5) + 1; // Cycle through plates
+        balancePt[currentPlate-1] = weightValAvg();
+        saveBalancePts();
+        Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+      } else {
+        digitalWrite(motorCtrlPin, LOW);
+      }
+    } else {
+      digitalWrite(motorCtrlPin, LOW);
+    }
+  }
+  Serial.println("end while");
+}
+
+void translateDistance() {
   cm1 = 0.01723 * readUltrasonicDistance(ut1, ue1);
   delay(100);
   cm2 = 0.01723 * readUltrasonicDistance(ut2, ue2);
-  // if (cm1>=25 & cm2>=25){
-  if (cm2>=25){
+  if (cm2 >= 25) {
     Serial.println("stop");
     Serial.println("near camera");
-    digitalWrite(motorCtrlPin,HIGH);
-    // delay(5000);
-  }
-  else{
+    digitalWrite(motorCtrlPin, HIGH);
+  } else {
     Serial.println("run");
-    digitalWrite(motorCtrlPin,LOW);
+    digitalWrite(motorCtrlPin, LOW);
   }
-  // Serial.print(cm1);
-  // Serial.println("cm1");
-  // Serial.print(cm2);
-  // Serial.println("cm2");,
-  delay(100); // Wait for 100 millisecond(s)
+  delay(100);
 }
 
 void runRotate(boolean en) {
-  if (en!=motorLastState){
-    if (en==true){
+  if (en != motorLastState) {
+    if (en) {
       Serial.println("run");
-      digitalWrite(motorCtrlPin,LOW);
-    }
-    else{
+      digitalWrite(motorCtrlPin, LOW);
+    } else {
       Serial.println("stop");
-      digitalWrite(motorCtrlPin,HIGH);
+      digitalWrite(motorCtrlPin, HIGH);
     }
     motorLastState = en;
   }
