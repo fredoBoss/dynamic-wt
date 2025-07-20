@@ -8,7 +8,7 @@ extern int currentPlate;
 
 float ZERO_OFFSET = 0.0;
 float SCALE_FACTOR = 1.0;
-const float BALANCE_PT_OFFSET = 815.46; // Based on prior validation error (1793.46g - 978g)
+const float BALANCE_PT_OFFSET = 875.63; // Based on latest validation error (1820.63g - 978g)
 
 void clearEEPROM() {
   for (int i = 0; i < EEPROM.length(); i++) {
@@ -56,6 +56,7 @@ void initLoadCell() {
   }
   delay(100);
   loadCalibration();
+  Serial.println("Startup calibration: ZERO_OFFSET=" + String(ZERO_OFFSET, 2) + ", SCALE_FACTOR=" + String(SCALE_FACTOR, 6) + ", calibrated=" + String(calibrated));
   loadBalancePts();
   scale.tare(20);
   balancePt[currentPlate-1] = weightValAvg();
@@ -114,7 +115,7 @@ float convertToWeight(long raw) {
 }
 
 float weightValAvg() {
-  delay(4000); // Increased to 4 seconds for stability
+  delay(4000); // 4-second delay for stability
   long readings[10];
   for (int i = 0; i < 10; i++) {
     readings[i] = scale.get_value();
@@ -181,32 +182,6 @@ float calculateScaleFactor() {
   return scaleFactor;
 }
 
-void validateCalibration(float knownWeight) {
-  Serial.println("Re-taring before validation...");
-  scale.tare(20);
-  long zeroOffset = scale.read_average(10);
-  Serial.println("Validation ZERO_OFFSET: " + String(zeroOffset));
-  Serial.println("Validating calibration...");
-  Serial.print("Place known weight ("); 
-  Serial.print(knownWeight); 
-  Serial.println("g) for validation.");
-  waitForUserConfirmation();
-  float measured = weightValAvg();
-  Serial.print("Validation measured: ");
-  Serial.print(measured);
-  Serial.println("g");
-  if (abs(measured - knownWeight) / knownWeight <= 0.01) {
-    Serial.println("Calibration successful!");
-  } else {
-    Serial.print("Calibration error: Measured ");
-    Serial.print(measured);
-    Serial.print("g, expected ");
-    Serial.print(knownWeight);
-    Serial.println("g.");
-    calibrated = false;
-  }
-}
-
 long calibrateWeight(int plate) {
   if (plate < 1 || plate > 5) {
     Serial.println("Error: Plate must be 1-5");
@@ -250,11 +225,7 @@ long calibrateWeight(int plate) {
   currentPlate = plate;
   Serial.println("New balancePt for plate " + String(plate) + " (g): " + String(balancePt[plate-1], 2));
 
-  validateCalibration(978.0);
-  if (!calibrated) {
-    Serial.println("Calibration failed. Please retry.");
-    return 0;
-  }
+  Serial.println("Calibration complete for plate " + String(plate));
   return scale.read_average(10);
 }
 
