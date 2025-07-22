@@ -8,7 +8,7 @@ extern int currentPlate;
 
 float ZERO_OFFSET = 0.0;
 float SCALE_FACTOR = 1.0;
-const float BALANCE_PT_OFFSET = 875.63; // Based on latest validation error (1820.63g - 978g)
+const float BALANCE_PT_OFFSET[5] = {862.63, 862.63, 862.63, 862.63, 862.63}; // Plate-specific offsets
 
 void clearEEPROM() {
   for (int i = 0; i < EEPROM.length(); i++) {
@@ -18,6 +18,18 @@ void clearEEPROM() {
   SCALE_FACTOR = 1.0;
   calibrated = false;
   Serial.println("EEPROM cleared, calibration reset");
+}
+
+void clearBalancePt(int plate) {
+  if (plate < 1 || plate > 5) {
+    Serial.println("Error: Plate must be 1-5");
+    return;
+  }
+  int offset = sizeof(float) * 2 + (plate - 1) * sizeof(float);
+  float zero = 0.0;
+  EEPROM.put(offset, zero);
+  balancePt[plate-1] = 0.0;
+  Serial.println("balancePt[" + String(plate) + "] cleared to 0.0");
 }
 
 void saveBalancePts() {
@@ -60,8 +72,8 @@ void initLoadCell() {
   loadBalancePts();
   scale.tare(20);
   balancePt[currentPlate-1] = weightValAvg();
-  saveBalancePts();
-  Serial.println("Initial balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1], 2));
+  // saveBalancePts();
+  // Serial.println("Initial balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1], 2));
 }
 
 void saveCalibration(float zeroOffset, float scaleFactor) {
@@ -135,7 +147,7 @@ float weightVal() {
   long raw = scale.get_value();
   Serial.println("Raw reading: " + String(raw));
   if (calibrated) {
-    float weight = convertToWeight(raw) - BALANCE_PT_OFFSET;
+    float weight = convertToWeight(raw) - BALANCE_PT_OFFSET[currentPlate-1];
     if (currentPlate > 0 && currentPlate <= 5) {
       weight -= balancePt[currentPlate-1];
     }
@@ -235,5 +247,6 @@ void printCalibration() {
   Serial.println("calibrated: " + String(calibrated));
   for (int i = 0; i < 5; i++) {
     Serial.println("balancePt[" + String(i+1) + "] (g): " + String(balancePt[i], 2));
+    Serial.println("BALANCE_PT_OFFSET[" + String(i+1) + "] (g): " + String(BALANCE_PT_OFFSET[i], 2));
   }
 }

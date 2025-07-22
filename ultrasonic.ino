@@ -37,9 +37,9 @@ void rotateNext1() {
     digitalWrite(motorCtrlPin, HIGH);
     scale.tare(20);
     currentPlate = (currentPlate % 5) + 1; // Cycle through plates 1–5
-    balancePt[currentPlate-1] = weightValAvg();
-    saveBalancePts();
-    Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+    // balancePt[currentPlate-1] = weightValAvg();
+    // saveBalancePts();
+    // Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
     delay(4000);
     digitalWrite(motorCtrlPin, LOW);
   }
@@ -57,9 +57,9 @@ void rotateNext1() {
         isRunning = false;
         scale.tare(20);
         currentPlate = (currentPlate % 5) + 1; // Cycle through plates
-        balancePt[currentPlate-1] = weightValAvg();
-        saveBalancePts();
-        Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+        // balancePt[currentPlate-1] = weightValAvg();
+        // saveBalancePts();
+        // Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
       } else {
         digitalWrite(motorCtrlPin, LOW);
       }
@@ -84,20 +84,20 @@ void rotateNext() {
     Serial.println("rotating");
     cm21 = 0.01723 * readUltrasonicDistance(ut2, ue2);
     delay(50);
-    if (cm21 <= 7) {
+    if (cm21 <= 10) {
       digitalWrite(motorCtrlPin, HIGH);
       cm11 = 0.01723 * readUltrasonicDistance(ut1, ue1);
       delay(50);
       digitalWrite(motorCtrlPin, LOW);
       delay(100);
-      if (cm11 <= 7) {
+      if (cm11 <= 10) {
         digitalWrite(motorCtrlPin, HIGH);
         isRunning = false;
         scale.tare(20);
         currentPlate = (currentPlate % 5) + 1; // Cycle through plates
-        balancePt[currentPlate-1] = weightValAvg();
-        saveBalancePts();
-        Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+        // balancePt[currentPlate-1] = weightValAvg();
+        // saveBalancePts();
+        // Serial.println("New balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
       } else {
         digitalWrite(motorCtrlPin, LOW);
       }

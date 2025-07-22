@@ -35,6 +35,11 @@ int servoValStop = 90;
 boolean motorLastState = 0;
 
 void saveBalancePts(); // Forward declaration
+void clearBalancePt(int plate); // Forward declaration
+void setupServo();
+void trayPos(int pos);
+void rotateNext();
+void rotateNext1();
 
 void setup() {
   Serial.begin(9600);
@@ -43,29 +48,18 @@ void setup() {
   pinMode(motorCtrlPin, OUTPUT);
   digitalWrite(motorCtrlPin, HIGH); // Active low
   Serial.println("starting");
-  // initPosServo();
-  // motorRotateFunc(1);
-  Serial.println("Starting. Send 'calibrate:<1-5>' to calibrate plate, 'readWt:' to read weight, 'tare:<1-5>' to tare plate, 'setPlate:<1-5>' to select plate, 'trayPos:<1-6>', 'next:', 'next1:', or 'printCal:' to check calibration.");
+  Serial.println("Starting. Send 'calibrate:<1-5>' to calibrate plate, 'readWt:' to read weight, 'tare:<1-5>' to tare plate, 'setPlate:<1-5>' to select plate, 'trayPos:<1-6>', 'next:', 'next1:', 'printCal:' to check calibration, 'clearEEPROM:' to clear all, or 'clearBalancePt:<1-5>' to clear specific plate balancePt.");
 }
 
 void loop() {
-  // Serial.println(weightVal());
-  // translateDistance();
-  // digitalWrite(motorCtrlPin, LOW); //active low
-  // Serial.println("low");
-  // delay(5000);
-  // digitalWrite(motorCtrlPin, HIGH); //active low
-  // Serial.println("high");
-  // delay(5000);
   mainLoop();
-  // startRotate();
-  // rotateNext();
-  // delay(1000);
 }
 
 void mainLoop() {
   while (Serial.available()) {
-    readStr = Serial.readString();
+    readStr = Serial.readStringUntil('\n');
+    readStr.trim(); // Remove whitespace and line endings
+    Serial.println("Received command: '" + readStr + "'"); // Debug input
     if (readStr.indexOf("readWt:") >= 0) {
       if (!calibrated) {
         Serial.println("Error: Run 'calibrate:<1-5>' for plate " + String(currentPlate) + " first!");
@@ -91,13 +85,13 @@ void mainLoop() {
       digitalWrite(motorCtrlPin, LOW);
       delay(400);
       scale.tare(20);
-      balancePt[plate-1] = weightValAvg(); // Set balancePt for selected plate
-      saveBalancePts(); // Save to EEPROM
+      // balancePt[plate-1] = weightValAvg(); // Set balancePt for selected plate
+      // saveBalancePts(); // Save to EEPROM
       currentPlate = plate; // Update current plate
       delay(100);
       digitalWrite(motorCtrlPin, HIGH);
       Serial.println("Tare done for plate " + String(plate));
-      Serial.println("New balancePt for plate " + String(plate) + " (g): " + String(balancePt[plate-1]));
+      // Serial.println("New balancePt for plate " + String(plate) + " (g): " + String(balancePt[plate-1]));
     }
     else if (readStr.indexOf("calibrate:") >= 0) {
       String plateStr = readStr.substring(10);
@@ -131,8 +125,23 @@ void mainLoop() {
     else if (readStr.indexOf("clearEEPROM:") >= 0) {
       clearEEPROM();
     }
+    else if (readStr.indexOf("clearBalancePt:") >= 0) {
+      int colonIndex = readStr.indexOf(":");
+      if (colonIndex == -1 || colonIndex >= readStr.length() - 1) {
+        Serial.println("Error: Invalid clearBalancePt command format");
+        return;
+      }
+      String plateStr = readStr.substring(colonIndex + 1);
+      Serial.println("Parsed plateStr: '" + plateStr + "'"); // Debug output
+      int plate = plateStr.toInt();
+      if (plate < 1 || plate > 5) {
+        Serial.println("Error: Plate must be 1-5");
+        return;
+      }
+      clearBalancePt(plate);
+      Serial.println("Cleared balancePt for plate " + String(plate));
+    }
     else return;
   }
   readStr = "";
-  // Serial.println("motor state:" + String(curMotorState));
 }
