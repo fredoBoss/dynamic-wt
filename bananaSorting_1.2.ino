@@ -1,6 +1,8 @@
 #include <Servo.h>
 #include <HX711.h>
 
+#include <EEPROM.h>
+
 #define loadcellDout 2
 #define loadcellSck 3
 #define motorCtrlPin 15
@@ -60,13 +62,16 @@ void mainLoop() {
     readStr = Serial.readStringUntil('\n');
     readStr.trim(); // Remove whitespace and line endings
     Serial.println("Received command: '" + readStr + "'"); // Debug input
+    if (readStr.indexOf("initCal")>=0){
+        
+    }
     if (readStr.indexOf("readWt:") >= 0) {
       if (!calibrated) {
         Serial.println("Error: Run 'calibrate:<1-5>' for plate " + String(currentPlate) + " first!");
       } else {
         float rawWeight = weightValAvg();
-        Serial.println("Raw weight (g): " + String(rawWeight));
-        Serial.println("balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
+        // Serial.println("Raw weight (g): " + String(rawWeight));
+        // Serial.println("balancePt for plate " + String(currentPlate) + " (g): " + String(balancePt[currentPlate-1]));
         Serial.println("readWt:" + String(rawWeight - balancePt[currentPlate-1]));
       }
     }

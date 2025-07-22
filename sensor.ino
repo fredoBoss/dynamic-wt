@@ -1,5 +1,4 @@
-#include <EEPROM.h>
-#include <HX711.h>
+
 
 extern bool calibrated;
 extern HX711 scale;
@@ -8,7 +7,7 @@ extern int currentPlate;
 
 float ZERO_OFFSET = 0.0;
 float SCALE_FACTOR = 1.0;
-const float BALANCE_PT_OFFSET[5] = {862.63, 862.63, 862.63, 862.63, 862.63}; // Plate-specific offsets
+const float BALANCE_PT_OFFSET[5] = {863.63, 862.63, 862.63, 862.63, 862.63}; // Plate-specific offsets
 
 void clearEEPROM() {
   for (int i = 0; i < EEPROM.length(); i++) {
@@ -131,12 +130,12 @@ float weightValAvg() {
   long readings[10];
   for (int i = 0; i < 10; i++) {
     readings[i] = scale.get_value();
-    Serial.println("Raw reading " + String(i) + ": " + String(readings[i]));
+    // Serial.println("Raw reading " + String(i) + ": " + String(readings[i]));
     delay(10);
   }
   sort(readings, 10);
   long raw = readings[5]; // Median of 10 readings
-  Serial.println("Median raw: " + String(raw));
+  // Serial.println("Median raw: " + String(raw));
   scale.power_down();
   delay(100);
   scale.power_up();

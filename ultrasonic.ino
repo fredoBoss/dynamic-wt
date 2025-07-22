@@ -1,4 +1,4 @@
-#include <HX711.h>
+// #include <HX711.h>
 
 extern HX711 scale;
 extern float balancePt[5];
